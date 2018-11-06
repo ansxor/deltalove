@@ -1,0 +1,52 @@
+--- deltalove
+--- title.lua -- title screen state
+--- Author: AnswerXOX
+--- Commentary:
+--[[
+   This title screen should give a basic screen that shows information about the different battles that are available,
+   scrolling through each of the battles should display a description and encounter label/name.
+]]--
+--- Code:
+
+local title = {}
+local animation_timer = 90
+
+local logo = {
+   animation = Animation:new({{x=0,y=0,w=224,y=34}},default.image['logo'],1),
+   sprite = nil
+}
+
+function title:start()
+   default.audio['title']:setLooping(true)
+   love.audio.play(default.audio['title'])
+   logo.sprite = Sprite:new(logo.animation, 0, 0)
+   --
+   return
+end
+
+function title:update(dt)
+   -- do sine animation for logo
+   animation_timer = (animation_timer + 0.01) % 360
+   local y = 28 + math.floor(math.abs(math.sin(animation_timer))* 8)
+   logo.sprite.y = y
+   logo.sprite.x = 640/2-(224/2)
+   logo.sprite:update(dt)
+   --
+   return
+end
+
+function title:draw()
+   logo.sprite:draw()
+   --
+   return
+end
+
+function title:finish()
+   love.audio.stop(default.audio['title'])
+   --
+   return
+end
+
+return title
+
+--- title.lua ends here
