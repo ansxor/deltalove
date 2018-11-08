@@ -12,7 +12,7 @@ local title = {}
 local animation_timer = 90
 local menuSelections = {
    {text="Run battle test.",scene="battle"},
-   {text="Exit the game.",scene="end"}
+   {text="Exit the game.",scene=""}
 }
 local selectedOption = 0
 
@@ -74,6 +74,9 @@ function title:keypressed(key, scancode, rep)
    if ((scancode == "down" or scancode == "up") and rep == false) then
       selectedOption = (selectedOption + 1) % 2
       flux.to(heart, 0.25, {x=200, y=212+selectedOption*64})
+   end
+   if (scancode == "z" and rep == false) then
+      states.current = menuSelections[selectedOption + 1].scene
    end
    --
    return

@@ -12,8 +12,8 @@
 flux = require "lib.flux"
 
 -- virtual resolution handling library
-local push = require "lib.push"
-local push_settings = {
+push = require "lib.push"
+push_settings = {
    raster = {x = 640, y = 480},
    window = {x = 640, y = 480},
    config = {fullscreen=false,resizable=true}
@@ -29,13 +29,16 @@ local CONSTANTS = {
 require 'sprite'
 require 'background'
 
--- load default resources
+-- set graphics filtering
 love.graphics.setDefaultFilter("nearest", "nearest", 0)
+
+-- load default resources
 default = {
    image = {
       ['logo'] = love.graphics.newImage('/media/logo.png'),
       ['ralsei'] = love.graphics.newImage('/media/ralsei.png'),
-      ['heart'] = love.graphics.newImage('/media/heart.png')
+      ['heart'] = love.graphics.newImage('/media/heart.png'),
+      ['danmaku_region'] = love.graphics.newImage('/media/danmaku_region.png')
    },
    audio = {
       ['battle'] = love.audio.newSource('/media/battle.ogg', 'stream'),
@@ -48,18 +51,18 @@ default = {
 				   function(s)
 				      local t, l = s.___timer, s.___timer_toloop/2
 				      local r,g,b,a = love.graphics.getColor()
+				      local line = love.graphics.line
 				      
 				      for i = -2, 14 do
 					 for j = -2, 14 do
-					    love.graphics.setColor(14, 0, 14, 256)
-					    love.graphics.line(i*l-t, j*l-t, i*l-t+l, j*l-t)
-					    love.graphics.line(i*l-t, j*l-t, i*l-t, j*l-t+l)
+					    love.graphics.setColor(6, 0, 6, 100)
+					    line(i*l-t, j*l-t, i*l-t+l, j*l-t)
+					    line(i*l-t, j*l-t, i*l-t, j*l-t+l)
 					    --
-					    love.graphics.setColor(26, 0, 26, 256)
-					    love.graphics.line(i*l+t, j*l+t, i*l+t+l, j*l+t)
-					    love.graphics.line(i*l+t, j*l+t, i*l+t, j*l+t+l)
+					    love.graphics.setColor(13, 0, 13, 100)
+					    line(i*l+t, j*l+t, i*l+t+l, j*l+t)
+					    line(i*l+t, j*l+t, i*l+t, j*l+t+l)
 					    --
-
 					 end
 				      end
 				      love.graphics.setColor(r,g,b,a)
@@ -77,18 +80,18 @@ default.animations = {
 	    {x=100,y=0,w=50,h=47},
 	    {x=150,y=0,w=50,h=47},
 	    {x=200,y=0,w=50,h=47}
-			       }, default.image['ralsei'], 4)
+			       }, default.image['ralsei'], 3)
    },
    ['logo'] = Animation:new({
-	 {x=0,y=0,w=224,h=34},
-	 {x=0,y=0,w=224,h=34}},
-      default.image['logo'], 1),
+	 {x=0,y=0,w=224,h=34}},default.image['logo'], 1),
    ['heart'] = Animation:new({
-	 {x=0,y=0,w=16,h=16},{x=0,y=0,w=16,h=16}}, default.image['heart'], 1)
+	 {x=0,y=0,w=16,h=16}}, default.image['heart'], 1),
+   ['danmaku_region'] = Animation:new({
+	 {x=0,y=0,w=150,h=150}}, default.image['danmaku_region'], 1)
 }
 
 -- game states
-local states = {
+states = {
    old = '',
    current = 'title',
    scenes = {
@@ -98,7 +101,6 @@ local states = {
 }
 
 function love.load()
-   -- set filters for scaling
    -- initialize virtual resolution
    push:setupScreen(push_settings.raster.x, push_settings.raster.y, push_settings.window.x, push_settings.window.y, push_settings.config)
    --
@@ -132,6 +134,8 @@ function love.update(dt)
 	 else
 	    love.event.quit()
 	 end
+      else
+	 love.event.quit()
       end
       states.old = states.current
    end
@@ -164,14 +168,7 @@ function love.keypressed(key, scancode, rep)
    end
    -- F4: Fullscreen toggle
    if (scancode == "f4" and rep == false) then
-      local isFullscreen = love.window.getFullscreen()
-      love.window.setFullscreen(not isFullscreen)
-      -- make default window resolution when out of fullscreen
-      if isFullscreen == true then
-	 love.window.setMode(push_settings.window.x,push_settings.window.y,push_settings.config)
-	 -- force resize needs to be done as love doesn't automatically detect it
-	 love.resize(push_settings.window.x,push_settings.window.y)
-      end
+      push:switchFullscreen(push_settings.window.x, push_settings.window.y)
    end
    --
    return
