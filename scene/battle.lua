@@ -4,16 +4,16 @@
 --- Commentary:
 --- Code:
 
-local battle = {}
-
-local friendlies = {
-   -- test friendly
-   ['test_ralsei'] = {
-      color = {20, 20, 20},
-      HP = {cur = 70, max = 70},
-      sprite = nil
-   }
-}
+local battle = {
+    friendlies = {
+        -- test friendly
+        ['test_ralsei'] = {
+            color = {20, 20, 20},
+            HP = {cur = 70, max = 70},
+            sprite = Sprite:new(default.animations.ralsei['idle'], 0, 0)
+        }
+    }
+ }
 
 local conf = nil
 local state = {
@@ -29,6 +29,7 @@ local danmakuRegion = {
       x = push_settings.raster.x/2, y = push_settings.raster.y/2,
       w = 150, h = 150
    },
+   focus = 0,
    loading = false, loaded = false,
    -- the heart will only be drawn if the danmaku region is loaded (the animation is completed)
 }
@@ -44,7 +45,8 @@ function danmakuRegion:init()
    danmakuRegion.loading = true
    flux.to(danmakuRegion.sprite, .5, {rot = math.pi * 2, sx = 1, sy = 1}):oncomplete(function()
 	 danmakuRegion.loaded = true
-									   end)
+										    end)
+   flux.to(danmakuRegion, 0.5, { focus = 100 })
    --
    return
 end
@@ -56,10 +58,6 @@ function battle:setBattleConfig(filename)
 end
 
 function battle:start()
-   -- make test ralsei friendly
-   
-   friendlies['test_ralsei'].sprite = Sprite:new(default.animations.ralsei['idle'], 0, 0)
-   friendlies['test_ralsei'].sprite.sx, friendlies['test_ralsei'].sprite.sy = 2, 2
    -- make danmaku region
    
    -- play the bopn
@@ -74,8 +72,9 @@ function battle:update(dt)
    default.backgrounds['default']:update(dt)
    local k,v = nil, nil
    -- handle friendlies
-   for k,v in pairs(friendlies) do
+   for k,v in pairs(battle.friendlies) do
       v.sprite.x, v.sprite.y = 32, 40
+      v.sprite.x, v.sprite.y = 2, 2
       v.sprite:update(dt)
    end
    -- handle enemies
@@ -124,9 +123,21 @@ function battle:draw()
    default.backgrounds['default']:draw()
    local k,v = nil,nil
    -- handle friendlies
-   for k,v in pairs(friendlies) do
+   for k,v in pairs(battle.friendlies) do
       v.sprite:draw()
    end
+   -- put a focus or not on the background
+   -- #TODO FIX BLENDING
+   --[[do
+      local r, g, b, a = love.graphics.getColor()
+      love.graphics.setColor(0, 0, 0, danmakuRegion.focus)
+      love.graphics.polygon('fill',
+			    0, 0,
+			    push_settings.raster.x, 0,
+			    push_settings.raster.x, push_settings.raster.y,
+			    0, push_settings.raster.y)
+      love.graphics.setColor(r, g, b, a)
+      end]]--
    -- draw danmaku region
    danmakuRegion.sprite:draw()
    -- handle state
